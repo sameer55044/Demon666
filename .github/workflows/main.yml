@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       port:
-        description: "Target Port" 
+        description: "Target Port"
         required: true
         type: string
       duration:
@@ -28,11 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        worker: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        worker: [1, 2, 3, 4, 5]
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Make binary executable  
+    - name: Make binary executable
       run: chmod +x demon
     - name: Run Network Test
       run: python3 main.py ${{ inputs.ip }} ${{ inputs.port }} ${{ inputs.duration }} ${{ inputs.packet_size }} ${{ inputs.threads }}
